@@ -45,7 +45,16 @@ function ABP_SaveProfile(profileName)
 			macroName = GetActionText(i);
 			if (macroName) then
 				ABP_Layout[ABP_PlayerName][profileName][i] = {};
-				ABP_Layout[ABP_PlayerName][profileName][i]["macro"] = macroName;
+
+				-- FIX: Check if this action slot holds a Super Macro by looking it
+				-- up in SM_ACTION (set by SuperMacro addon). If found, save it under
+				-- the "supermacro" key so we can distinguish it from regular macros
+				-- on load and call PickupMacro correctly with the supername argument.
+				if (SM_ACTION and SM_ACTION[i]) then
+					ABP_Layout[ABP_PlayerName][profileName][i]["supermacro"] = macroName;
+				else
+					ABP_Layout[ABP_PlayerName][profileName][i]["macro"] = macroName;
+				end
 			else
 				ABP_Tooltip:ClearLines();
 				ABP_Tooltip:SetAction(i);
@@ -125,15 +134,30 @@ function ABP_LoadProfile(profileName)
 					PickupContainerItem(bagID, slotID);
 					PlaceAction(i);
 				end
-			-- Macro
+			-- FIX: Super Macro — saved under "supermacro" key (distinct from "macro").
+			-- Previously this branch used ["macros"] (typo, never matched) and passed
+			-- macroid=0 to PickupMacro which is invalid. Now correctly uses ["supermacro"]
+			-- and passes nil as macroid so SuperMacro's hooked PickupMacro uses supername.
+			elseif (ABP_Layout[ABP_PlayerName][profileName][i]["supermacro"]) then
+				local superName = ABP_Layout[ABP_PlayerName][profileName][i]["supermacro"];
+				if (GetSuperMacroInfo(superName, "texture")) then
+					PickupMacro(nil, superName);
+					PlaceAction(i);
+				else
+					DEFAULT_CHAT_FRAME:AddMessage("Super Macro \""..superName.."\" was not found and could not be loaded.");
+					PickupAction(i);
+					ClearCursor();
+				end
+			-- Regular Macro
 			elseif (ABP_Layout[ABP_PlayerName][profileName][i]["macro"]) then
 				macroIdx = GetMacroIndexByName(ABP_Layout[ABP_PlayerName][profileName][i]["macro"]);
 				if (macroIdx > 0) then
 					PickupMacro(macroIdx);
 					PlaceAction(i);
-				elseif (GetSuperMacroInfo(ABP_Layout[ABP_PlayerName][profileName][i]["macros"], "texture")) then
-					PickupMacro(0, ABP_Layout[ABP_PlayerName][profileName][i]["macros"]);
-					PlaceAction(i)
+				else
+					DEFAULT_CHAT_FRAME:AddMessage("Macro \""..ABP_Layout[ABP_PlayerName][profileName][i]["macro"].."\" was not found and could not be loaded.");
+					PickupAction(i);
+					ClearCursor();
 				end
 			-- [i] is empty, so clear the slot
 			else
