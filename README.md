@@ -5,7 +5,7 @@
 
 Vanilla WoW addon that saves and restores layout of one's action bars.
 
-`Created by Threewords of the guild "Vanguard"`
+`All respects to all contributors Threewords <owner>, Ermean, Feenix, Sivent"`
 
 ## Usage
 
