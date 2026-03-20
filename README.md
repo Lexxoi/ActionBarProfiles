@@ -23,4 +23,6 @@ The addon also has a basic GUI that can be acessed via the MiniMap icon, and loo
 ![Image of ABP GUI](https://i.imgur.com/AL5w5HE.png)
 
 
-# V3.0 added changes in order to save the Macros created with SuperMacro add-on
+## Changes
+
+#### V3.0 added changes in order to save the Macros created with SuperMacro add-on
